@@ -36,7 +36,9 @@ public class MusicbrainzDao {
             "  release_name,\n" +
             "  total_tracks,\n" +
             "  artist_id,\n" +
-            "  release_group_id\n" +
+            "  release_group_id,\n" +
+            "  release_mbid,\n" +
+            "  release_group_mbid\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -50,6 +52,8 @@ public class MusicbrainzDao {
             "                medium.id                  AS medium_id,\n" +
             "                r.id                       AS release_group_id,\n" +
             "                rel.id                     AS release_id,\n" +
+            "                r.gid                      AS release_group_mbid,\n" +
+            "                rel.gid                    AS release_mbid,\n" +
             "                a.id                       AS artist_id,\n" +
             "                a.name                     AS artist,\n" +
             "                r.name                     AS release_name,\n" +
@@ -258,7 +262,7 @@ public class MusicbrainzDao {
         try {
             dataSource = new PGSimpleDataSource();
             dataSource.setDatabaseName("musicbrainz_db");
-            dataSource.setUrl("jdbc:postgresql://localhost:5432/musicbrainz_db");
+            dataSource.setUrl("jdbc:postgresql://localhost:5433/musicbrainz_db");
             dataSource.setUser("musicbrainz");
             dataSource.setPassword("musicbrainz");
             dataSource.getConnection();
