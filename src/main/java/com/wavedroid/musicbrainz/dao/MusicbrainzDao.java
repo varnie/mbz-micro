@@ -160,17 +160,21 @@ public class MusicbrainzDao {
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month,\n" +
-            "                a.rank                     AS rank\n" +
+            "                r.rank                     AS rank\n" +
             "              FROM\n" +
             "                (SELECT\n" +
             "                   name,\n" +
+            "                   type,\n" +
             "                   id,\n" +
+            "                   gid,\n" +
+            "                   artist_credit,\n" +
             "                   ts_rank_cd(ts_name, plainto_tsquery('mb_simple', ?), 2) rank\n" +
-            "                 FROM artist\n" +
+            "                 FROM release_group\n" +
             "                 WHERE ts_name @@ plainto_tsquery('mb_simple', ?)\n" +
-            "                ) AS a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
-            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
+            "                 ORDER BY rank DESC\n" +
+            "                ) AS r\n" +
+            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist_credit\n" +
+            "                INNER JOIN artist a ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
