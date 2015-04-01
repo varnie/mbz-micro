@@ -1,4 +1,4 @@
-package com.wavedroid.dao;
+package com.wavedroid.musicbrainz.dao;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;

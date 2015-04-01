@@ -1,6 +1,6 @@
-package com.wavedroid.api;
+package com.wavedroid.musicbrainz.api;
 
-import com.wavedroid.dao.MusicbrainzDao;
+import com.wavedroid.musicbrainz.dao.MusicbrainzDao;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

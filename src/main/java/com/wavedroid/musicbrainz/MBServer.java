@@ -1,6 +1,6 @@
-package com.wavedroid;
+package com.wavedroid.musicbrainz;
 
-import com.wavedroid.api.AlbumResource;
+import com.wavedroid.musicbrainz.api.AlbumResource;
 import io.dropwizard.Application;
 import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
