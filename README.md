@@ -1,4 +1,4 @@
-# Minimalistic musicbrainz server.
+# Minimalistic musicbrainz server
 
 - All releases by name:
 > /release/name/$name
