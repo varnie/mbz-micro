@@ -342,6 +342,11 @@ public class MusicbrainzDao {
             } catch (SQLException e) {
                 LOGGER.error("Error executing query", e);
                 return Optional.absent();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
             }
         } else {
             return Optional.absent();
