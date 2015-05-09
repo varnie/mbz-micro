@@ -167,7 +167,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "              WHERE r.gid = ?\n" +
+            "              WHERE rel.gid = ?\n" +
             "            )\n" +
             "         AS tbl) AS tbl2\n" +
             "ORDER BY artist, rg_year, rg_month\n";
