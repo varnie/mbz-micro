@@ -329,7 +329,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN medium m ON m.release = rel.id\n" +
-            "              WHERE r.gid = ?) AS tbl) AS tbl2\n" +
+            "              WHERE rel.gid = ?) AS tbl) AS tbl2\n" +
             "  INNER JOIN track t ON t.medium = medium_id\n" +
             "ORDER BY disc_number, t.position \n";
 
