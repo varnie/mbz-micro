@@ -77,6 +77,23 @@ public class AlbumResource {
 
     @GET
     @Timed
+    @Path("/mbid/{mbid}")
+    public String releaseById(@PathParam("mbid") String mbid) {
+        Map<String, Object> releaseMap = MusicbrainzDao.getReleaseByMbid(mbid);
+        List<Map<String, Object>> tracklist = MusicbrainzDao.getTracklist(mbid, 0);
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("release", releaseMap);
+        map.put("tracklist", tracklist);
+        try {
+            return om.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Error processing JSON", e);
+            return "";
+        }
+    }
+
+    @GET
+    @Timed
     @Path("/name/{name}")
     public String releaseByName(@PathParam("name") String name) {
         List<Map<String, Object>> map = MusicbrainzDao.getReleasesByName(decodeUrlParameter(name, "name"), 0);

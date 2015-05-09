@@ -128,6 +128,50 @@ public class MusicbrainzDao {
             "         AS tbl) AS tbl2\n" +
             "ORDER BY artist, rg_year, rg_month\n";
 
+    private static final String RELEASE_BY_MBID = "SELECT\n" +
+            "  rg_year  AS year,\n" +
+            "  rg_month AS month,\n" +
+            "  artist,\n" +
+            "  release_name,\n" +
+            "  total_tracks,\n" +
+            "  artist_id,\n" +
+            "  release_group_id,\n" +
+            "  release_mbid,\n" +
+            "  release_group_mbid\n" +
+            "FROM (\n" +
+            "       SELECT DISTINCT ON (release_group_id)\n" +
+            "         sum(track_count)\n" +
+            "         OVER (PARTITION BY release_id) total_tracks,\n" +
+            "         *\n" +
+            "       FROM (\n" +
+            "              SELECT\n" +
+            "                r.type,\n" +
+            "                re.country,\n" +
+            "                medium.track_count         AS track_count,\n" +
+            "                medium.id                  AS medium_id,\n" +
+            "                r.id                       AS release_group_id,\n" +
+            "                rel.id                     AS release_id,\n" +
+            "                r.gid                      AS release_group_mbid,\n" +
+            "                rel.gid                    AS release_mbid,\n" +
+            "                a.id                       AS artist_id,\n" +
+            "                a.name                     AS artist,\n" +
+            "                r.name                     AS release_name,\n" +
+            "                re.date_year               AS year,\n" +
+            "                re.date_month              AS month,\n" +
+            "                m.first_release_date_year  AS rg_year,\n" +
+            "                m.first_release_date_month AS rg_month\n" +
+            "              FROM artist a\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
+            "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
+            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
+            "                INNER JOIN release_event re ON re.release = rel.id\n" +
+            "                INNER JOIN medium ON medium.release = rel.id\n" +
+            "              WHERE r.gid = ?\n" +
+            "            )\n" +
+            "         AS tbl) AS tbl2\n" +
+            "ORDER BY artist, rg_year, rg_month\n";
+
     private static final String RELEASE_BY_NAME = "SELECT\n" +
             "  rg_year  AS year,\n" +
             "  rg_month AS month,\n" +
@@ -262,6 +306,33 @@ public class MusicbrainzDao {
             "  INNER JOIN track t ON t.medium = medium_id\n" +
             "ORDER BY disc_number, t.position \n";
 
+    private static final String TRACKLIST_BY_RELEASE_MBID = "SELECT\n" +
+            "  t.id             AS track_id,\n" +
+            "  t.name           AS title,\n" +
+            "  t.length         AS length,\n" +
+            "  t.position       AS position,\n" +
+            "  tbl2.disc_number AS disc_number\n" +
+            "FROM (\n" +
+            "       SELECT DISTINCT ON (release_group_id)\n" +
+            "         sum(track_count)\n" +
+            "         OVER (PARTITION BY release_id) total_tracks,\n" +
+            "         *\n" +
+            "       FROM (\n" +
+            "              SELECT\n" +
+            "                m.track_count AS track_count,\n" +
+            "                m.id          AS medium_id,\n" +
+            "                m.position    AS disc_number,\n" +
+            "                r.id          AS release_group_id,\n" +
+            "                rel.id        AS release_id\n" +
+            "              FROM artist a\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
+            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
+            "                INNER JOIN medium m ON m.release = rel.id\n" +
+            "              WHERE r.gid = ?) AS tbl) AS tbl2\n" +
+            "  INNER JOIN track t ON t.medium = medium_id\n" +
+            "ORDER BY disc_number, t.position \n";
+
     private MusicbrainzDao() {
         try {
             dataSource = new PGSimpleDataSource();
@@ -295,6 +366,22 @@ public class MusicbrainzDao {
         return Maps.newHashMap();
     }
 
+    public static Map<String, Object> getReleaseByMbid(String mbid) {
+        try {
+            Optional<ResultSet> rs = getResultSet(RELEASE_BY_MBID, 0, mbid);
+            if (rs.isPresent()) {
+                if (rs.get().next()) {
+                    return getEntityFromResultSet(rs.get());
+                } else {
+                    return Maps.newHashMap();
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Error querying release by mbid", e);
+        }
+        return Maps.newHashMap();
+    }
+
     public static List<Map<String, Object>> getReleasesByName(String name, int page) {
         return getEntitiesFromResultSet(getResultSet(RELEASE_BY_NAME, page, name, name).orNull());
     }
@@ -307,6 +394,9 @@ public class MusicbrainzDao {
         return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_ID, page, releaseId).orNull());
     }
 
+    public static List<Map<String, Object>> getTracklist(String mbid, int page) {
+        return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_MBID, page, mbid).orNull());
+    }
 
     private static Optional<Connection> getConnection() {
         try {

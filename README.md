@@ -6,6 +6,9 @@
 - Release by id:
 > /release/id/$id
 
+- Release by mbid:
+> /release/mbid/$mbid
+
 - All releases by artist:
 > /release/artistId/$artistId
 
