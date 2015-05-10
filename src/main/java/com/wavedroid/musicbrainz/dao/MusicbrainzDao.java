@@ -38,7 +38,8 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid\n" +
+            "  release_group_mbid,\n" +
+            "  tag\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -61,7 +62,8 @@ public class MusicbrainzDao {
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month,\n" +
-            "                a.rank                     AS rank\n" +
+            "                a.rank                     AS rank,\n" +
+            "                tag.name                   AS tag\n" +
             "              FROM\n" +
             "                (SELECT\n" +
             "                   name,\n" +
@@ -75,6 +77,8 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
+            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
+            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "                                     AND r.type = 1\n" +
             "                                     AND NOT exists(SELECT 1\n" +
@@ -93,95 +97,8 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid\n" +
-            "FROM (\n" +
-            "       SELECT DISTINCT ON (release_group_id)\n" +
-            "         sum(track_count)\n" +
-            "         OVER (PARTITION BY release_id) total_tracks,\n" +
-            "         *\n" +
-            "       FROM (\n" +
-            "              SELECT\n" +
-            "                r.type,\n" +
-            "                re.country,\n" +
-            "                medium.track_count         AS track_count,\n" +
-            "                medium.id                  AS medium_id,\n" +
-            "                r.id                       AS release_group_id,\n" +
-            "                rel.id                     AS release_id,\n" +
-            "                r.gid                      AS release_group_mbid,\n" +
-            "                rel.gid                    AS release_mbid,\n" +
-            "                a.id                       AS artist_id,\n" +
-            "                a.name                     AS artist,\n" +
-            "                r.name                     AS release_name,\n" +
-            "                re.date_year               AS year,\n" +
-            "                re.date_month              AS month,\n" +
-            "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month\n" +
-            "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
-            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
-            "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
-            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
-            "                INNER JOIN release_event re ON re.release = rel.id\n" +
-            "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "              WHERE r.id = ?\n" +
-            "            )\n" +
-            "         AS tbl) AS tbl2\n" +
-            "ORDER BY artist, rg_year, rg_month\n";
-
-    private static final String RELEASE_BY_MBID = "SELECT\n" +
-            "  rg_year  AS year,\n" +
-            "  rg_month AS month,\n" +
-            "  artist,\n" +
-            "  release_name,\n" +
-            "  total_tracks,\n" +
-            "  artist_id,\n" +
-            "  release_group_id,\n" +
-            "  release_mbid,\n" +
-            "  release_group_mbid\n" +
-            "FROM (\n" +
-            "       SELECT DISTINCT ON (release_group_id)\n" +
-            "         sum(track_count)\n" +
-            "         OVER (PARTITION BY release_id) total_tracks,\n" +
-            "         *\n" +
-            "       FROM (\n" +
-            "              SELECT\n" +
-            "                r.type,\n" +
-            "                re.country,\n" +
-            "                medium.track_count         AS track_count,\n" +
-            "                medium.id                  AS medium_id,\n" +
-            "                r.id                       AS release_group_id,\n" +
-            "                rel.id                     AS release_id,\n" +
-            "                r.gid                      AS release_group_mbid,\n" +
-            "                rel.gid                    AS release_mbid,\n" +
-            "                a.id                       AS artist_id,\n" +
-            "                a.name                     AS artist,\n" +
-            "                r.name                     AS release_name,\n" +
-            "                re.date_year               AS year,\n" +
-            "                re.date_month              AS month,\n" +
-            "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month\n" +
-            "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
-            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
-            "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
-            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
-            "                INNER JOIN release_event re ON re.release = rel.id\n" +
-            "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "              WHERE rel.gid = ?\n" +
-            "            )\n" +
-            "         AS tbl) AS tbl2\n" +
-            "ORDER BY artist, rg_year, rg_month\n";
-
-    private static final String RELEASE_BY_NAME = "SELECT\n" +
-            "  rg_year  AS year,\n" +
-            "  rg_month AS month,\n" +
-            "  artist,\n" +
-            "  release_name,\n" +
-            "  total_tracks,\n" +
-            "  artist_id,\n" +
-            "  release_group_id,\n" +
-            "  release_mbid,\n" +
-            "  release_group_mbid\n" +
+            "  release_group_mbid," +
+            "  tag\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -204,34 +121,22 @@ public class MusicbrainzDao {
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month,\n" +
-            "                r.rank                     AS rank\n" +
-            "              FROM\n" +
-            "                (SELECT\n" +
-            "                   name,\n" +
-            "                   type,\n" +
-            "                   id,\n" +
-            "                   gid,\n" +
-            "                   artist_credit,\n" +
-            "                   ts_rank_cd(ts_name, plainto_tsquery('mb_simple', ?), 2) rank\n" +
-            "                 FROM release_group\n" +
-            "                 WHERE ts_name @@ plainto_tsquery('mb_simple', ?)\n" +
-            "                 ORDER BY rank DESC\n" +
-            "                ) AS r\n" +
-            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist_credit\n" +
-            "                INNER JOIN artist a ON a.id = c.artist_credit\n" +
+            "                tag.name                   AS tag\n" +
+            "              FROM artist a\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "                                     AND r.type = 1\n" +
-            "                                     AND NOT exists(SELECT 1\n" +
-            "                                                    FROM release_group_secondary_type_join j\n" +
-            "                                                    WHERE j.release_group = r.id)\n" +
+            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
+            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
+            "              WHERE r.id = ?\n" +
             "            )\n" +
             "         AS tbl) AS tbl2\n" +
-            "ORDER BY rank DESC, year, month\n";
+            "ORDER BY artist, rg_year, rg_month\n";
 
-    private static final String RELEASE_BY_ARTIST = "SELECT\n" +
+    private static final String RELEASE_BY_MBID = "SELECT\n" +
             "  rg_year  AS year,\n" +
             "  rg_month AS month,\n" +
             "  artist,\n" +
@@ -240,7 +145,8 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid\n" +
+            "  release_group_mbid,\n" +
+            "  tag\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -262,7 +168,8 @@ public class MusicbrainzDao {
             "                re.date_year               AS year,\n" +
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month\n" +
+            "                m.first_release_date_month AS rg_month,\n" +
+            "                tag.name                   AS tag\n" +
             "              FROM artist a\n" +
             "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
@@ -270,6 +177,119 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
+            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
+            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
+            "              WHERE rel.gid = CAST(? AS UUID)\n" +
+            "            )\n" +
+            "         AS tbl) AS tbl2\n" +
+            "ORDER BY artist, rg_year, rg_month\n";
+
+    private static final String RELEASE_BY_NAME = "SELECT\n" +
+            "  rg_year  AS year,\n" +
+            "  rg_month AS month,\n" +
+            "  artist,\n" +
+            "  release_name,\n" +
+            "  total_tracks,\n" +
+            "  artist_id,\n" +
+            "  release_group_id,\n" +
+            "  release_mbid,\n" +
+            "  release_group_mbid,\n" +
+            "  tag\n" +
+            "FROM (\n" +
+            "       SELECT DISTINCT ON (release_group_id)\n" +
+            "         sum(track_count)\n" +
+            "         OVER (PARTITION BY release_id) total_tracks,\n" +
+            "         *\n" +
+            "       FROM (\n" +
+            "              SELECT\n" +
+            "                r.type,\n" +
+            "                re.country,\n" +
+            "                medium.track_count         AS track_count,\n" +
+            "                medium.id                  AS medium_id,\n" +
+            "                r.id                       AS release_group_id,\n" +
+            "                rel.id                     AS release_id,\n" +
+            "                r.gid                      AS release_group_mbid,\n" +
+            "                rel.gid                    AS release_mbid,\n" +
+            "                a.id                       AS artist_id,\n" +
+            "                a.name                     AS artist,\n" +
+            "                r.name                     AS release_name,\n" +
+            "                re.date_year               AS year,\n" +
+            "                re.date_month              AS month,\n" +
+            "                m.first_release_date_year  AS rg_year,\n" +
+            "                m.first_release_date_month AS rg_month,\n" +
+            "                r.rank                     AS rank,\n" +
+            "                tag.name                   AS tag\n" +
+            "              FROM\n" +
+            "                (SELECT\n" +
+            "                   name,\n" +
+            "                   type,\n" +
+            "                   id,\n" +
+            "                   gid,\n" +
+            "                   artist_credit,\n" +
+            "                   ts_rank_cd(ts_name, plainto_tsquery('mb_simple', ?), 2) rank\n" +
+            "                 FROM release_group\n" +
+            "                 WHERE ts_name @@ plainto_tsquery('mb_simple', ?)\n" +
+            "                 ORDER BY rank DESC\n" +
+            "                ) AS r\n" +
+            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist_credit\n" +
+            "                INNER JOIN artist a ON a.id = c.artist_credit\n" +
+            "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
+            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
+            "                INNER JOIN release_event re ON re.release = rel.id\n" +
+            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
+            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
+            "                INNER JOIN medium ON medium.release = rel.id\n" +
+            "                                     AND r.type = 1\n" +
+            "                                     AND NOT exists(SELECT 1\n" +
+            "                                                    FROM release_group_secondary_type_join j\n" +
+            "                                                    WHERE j.release_group = r.id)\n" +
+            "            )\n" +
+            "         AS tbl) AS tbl2\n" +
+            "ORDER BY rank DESC, year, month\n";
+
+    private static final String RELEASE_BY_ARTIST = "SELECT\n" +
+            "  rg_year  AS year,\n" +
+            "  rg_month AS month,\n" +
+            "  artist,\n" +
+            "  release_name,\n" +
+            "  total_tracks,\n" +
+            "  artist_id,\n" +
+            "  release_group_id,\n" +
+            "  release_mbid,\n" +
+            "  release_group_mbid,\n" +
+            "  tag\n" +
+            "FROM (\n" +
+            "       SELECT DISTINCT ON (release_group_id)\n" +
+            "         sum(track_count)\n" +
+            "         OVER (PARTITION BY release_id) total_tracks,\n" +
+            "         *\n" +
+            "       FROM (\n" +
+            "              SELECT\n" +
+            "                r.type,\n" +
+            "                re.country,\n" +
+            "                medium.track_count         AS track_count,\n" +
+            "                medium.id                  AS medium_id,\n" +
+            "                r.id                       AS release_group_id,\n" +
+            "                rel.id                     AS release_id,\n" +
+            "                r.gid                      AS release_group_mbid,\n" +
+            "                rel.gid                    AS release_mbid,\n" +
+            "                a.id                       AS artist_id,\n" +
+            "                a.name                     AS artist,\n" +
+            "                r.name                     AS release_name,\n" +
+            "                re.date_year               AS year,\n" +
+            "                re.date_month              AS month,\n" +
+            "                m.first_release_date_year  AS rg_year,\n" +
+            "                m.first_release_date_month AS rg_month,\n" +
+            "                tag.name                   AS tag\n" +
+            "              FROM artist a\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
+            "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
+            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
+            "                INNER JOIN release_event re ON re.release = rel.id\n" +
+            "                INNER JOIN medium ON medium.release = rel.id\n" +
+            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
+            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "              WHERE a.id = ?\n" +
             "                    AND r.type = 1\n" +
             "                    AND NOT exists(SELECT 1\n" +
@@ -329,7 +349,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN medium m ON m.release = rel.id\n" +
-            "              WHERE rel.gid = ?) AS tbl) AS tbl2\n" +
+            "              WHERE rel.gid = CAST(? AS UUID)) AS tbl) AS tbl2\n" +
             "  INNER JOIN track t ON t.medium = medium_id\n" +
             "ORDER BY disc_number, t.position \n";
 
