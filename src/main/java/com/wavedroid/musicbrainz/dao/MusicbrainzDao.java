@@ -38,8 +38,7 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid,\n" +
-            "  tag\n" +
+            "  release_group_mbid\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -62,8 +61,7 @@ public class MusicbrainzDao {
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month,\n" +
-            "                a.rank                     AS rank,\n" +
-            "                tag.name                   AS tag\n" +
+            "                a.rank                     AS rank\n" +
             "              FROM\n" +
             "                (SELECT\n" +
             "                   name,\n" +
@@ -77,8 +75,6 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
-            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
-            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "                                     AND r.type = 1\n" +
             "                                     AND NOT exists(SELECT 1\n" +
@@ -97,8 +93,7 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid," +
-            "  tag\n" +
+            "  release_group_mbid\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -120,8 +115,7 @@ public class MusicbrainzDao {
             "                re.date_year               AS year,\n" +
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month,\n" +
-            "                tag.name                   AS tag\n" +
+            "                m.first_release_date_month AS rg_month\n" +
             "              FROM artist a\n" +
             "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
@@ -129,8 +123,6 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
-            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "              WHERE r.id = ?\n" +
             "            )\n" +
             "         AS tbl) AS tbl2\n" +
@@ -145,8 +137,7 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid,\n" +
-            "  tag\n" +
+            "  release_group_mbid\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -168,8 +159,7 @@ public class MusicbrainzDao {
             "                re.date_year               AS year,\n" +
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month,\n" +
-            "                tag.name                   AS tag\n" +
+            "                m.first_release_date_month AS rg_month\n" +
             "              FROM artist a\n" +
             "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
@@ -177,8 +167,6 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
-            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "              WHERE rel.gid = CAST(? AS UUID)\n" +
             "            )\n" +
             "         AS tbl) AS tbl2\n" +
@@ -193,8 +181,7 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid,\n" +
-            "  tag\n" +
+            "  release_group_mbid\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -217,8 +204,7 @@ public class MusicbrainzDao {
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month,\n" +
-            "                r.rank                     AS rank,\n" +
-            "                tag.name                   AS tag\n" +
+            "                r.rank                     AS rank\n" +
             "              FROM\n" +
             "                (SELECT\n" +
             "                   name,\n" +
@@ -236,8 +222,6 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
-            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
-            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "                                     AND r.type = 1\n" +
             "                                     AND NOT exists(SELECT 1\n" +
@@ -256,8 +240,7 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid,\n" +
-            "  tag\n" +
+            "  release_group_mbid\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -279,8 +262,7 @@ public class MusicbrainzDao {
             "                re.date_year               AS year,\n" +
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month,\n" +
-            "                tag.name                   AS tag\n" +
+            "                m.first_release_date_month AS rg_month\n" +
             "              FROM artist a\n" +
             "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
@@ -288,8 +270,6 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "                LEFT OUTER JOIN release_group_tag rt on rt.release_group = rel.release_group\n" +
-            "                LEFT OUTER JOIN tag tag on rt.tag = tag.id\n" +
             "              WHERE a.id = ?\n" +
             "                    AND r.type = 1\n" +
             "                    AND NOT exists(SELECT 1\n" +
@@ -352,6 +332,23 @@ public class MusicbrainzDao {
             "              WHERE rel.gid = CAST(? AS UUID)) AS tbl) AS tbl2\n" +
             "  INNER JOIN track t ON t.medium = medium_id\n" +
             "ORDER BY disc_number, t.position \n";
+
+    private static final String TAGS_BY_RELEASE_GROUPS = "" +
+            "SELECT\n" +
+            "  release_group_id,\n" +
+            "  tag\n" +
+            "FROM (\n" +
+            "       SELECT\n" +
+            "         release_group          AS release_group_id,\n" +
+            "         name                   AS tag,\n" +
+            "         row_number()\n" +
+            "         OVER (PARTITION BY release_group\n" +
+            "           ORDER BY count DESC) AS row_number\n" +
+            "       FROM release_group_tag rt\n" +
+            "         LEFT OUTER JOIN tag tag ON rt.tag = tag.id\n" +
+            "       WHERE release_group = ANY (?)\n" +
+            "     ) AS t\n" +
+            "WHERE t.row_number <= ?\n";
 
     private MusicbrainzDao() {
         try {
@@ -418,6 +415,10 @@ public class MusicbrainzDao {
         return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_MBID, page, mbid).orNull());
     }
 
+    public static List<Map<String, Object>> getTags(List<Long> releaseGroupIds, int limit) {
+        return getEntitiesFromResultSet(getResultSet(TAGS_BY_RELEASE_GROUPS, 0, releaseGroupIds, limit).orNull());
+    }
+
     private static Optional<Connection> getConnection() {
         try {
             return Optional.of(INSTANCE.dataSource.getConnection());
@@ -444,6 +445,9 @@ public class MusicbrainzDao {
                     }
                     if (param instanceof Long) {
                         ps.setLong(index, (Long) param);
+                    }
+                    if (param instanceof List) {
+                        ps.setArray(index, conn.createArrayOf("integer", ((List) param).toArray()));
                     }
                 }
                 ps.setInt(++index, PAGE_SIZE);
