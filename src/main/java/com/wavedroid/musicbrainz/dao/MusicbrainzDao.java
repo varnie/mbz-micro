@@ -167,7 +167,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "              WHERE rel.gid = CAST(? AS UUID)\n" +
+            "              WHERE r.gid = CAST(? AS UUID)\n" +
             "            )\n" +
             "         AS tbl) AS tbl2\n" +
             "ORDER BY artist, rg_year, rg_month\n";
@@ -329,7 +329,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN medium m ON m.release = rel.id\n" +
-            "              WHERE rel.gid = CAST(? AS UUID)) AS tbl) AS tbl2\n" +
+            "              WHERE r.gid = CAST(? AS UUID)) AS tbl) AS tbl2\n" +
             "  INNER JOIN track t ON t.medium = medium_id\n" +
             "ORDER BY disc_number, t.position \n";
 
