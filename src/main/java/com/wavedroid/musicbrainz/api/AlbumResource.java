@@ -95,7 +95,9 @@ public class AlbumResource {
     @Path("/mbid/{mbid}")
     public String releaseById(@PathParam("mbid") String mbid) {
         Map<String, Object> releaseMap = MusicbrainzDao.getReleaseByMbid(mbid);
+        Long releaseGroupId = getReleaseGroupId(releaseMap);
         releaseMap.put("image", getCover(mbid));
+        releaseMap.put("genre", MusicbrainzDao.getTags(Lists.newArrayList(releaseGroupId), 1));
         List<Map<String, Object>> tracklist = MusicbrainzDao.getTracklist(mbid, 0);
         Map<String, Object> map = Maps.newHashMap();
         map.put("release", releaseMap);
