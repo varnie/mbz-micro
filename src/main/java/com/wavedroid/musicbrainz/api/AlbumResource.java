@@ -2,11 +2,19 @@ package com.wavedroid.musicbrainz.api;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wavedroid.musicbrainz.dao.MusicbrainzDao;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +24,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author Dmitriy Khvatov (<i>dimax4@gmail.com</i>)
@@ -81,6 +95,7 @@ public class AlbumResource {
     @Path("/mbid/{mbid}")
     public String releaseById(@PathParam("mbid") String mbid) {
         Map<String, Object> releaseMap = MusicbrainzDao.getReleaseByMbid(mbid);
+        releaseMap.put("image", getCover(mbid));
         List<Map<String, Object>> tracklist = MusicbrainzDao.getTracklist(mbid, 0);
         Map<String, Object> map = Maps.newHashMap();
         map.put("release", releaseMap);
@@ -109,6 +124,55 @@ public class AlbumResource {
 
     private Long getReleaseGroupId(Map<String, Object> input) {
         return Long.parseLong(String.valueOf(input.get("release_group_id")));
+    }
+
+    private static final String COVER_ART_URL = "http://coverartarchive.org/release-group/%s";
+
+    private static String getCover(String mbid) {
+        String url = String.format(COVER_ART_URL, mbid);
+
+        HttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+        HttpGet httpGet = new HttpGet(url);
+        HttpResponse httpResponse;
+        try {
+            httpResponse = client.execute(httpGet);
+        } catch (IOException e) {
+            return "";
+        }
+        HttpEntity entity = httpResponse.getEntity();
+        InputStream is;
+        try {
+            is = entity.getContent();
+        } catch (IOException e) {
+            return "";
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        br.lines().forEach(new Consumer<String>() {
+            @Override
+            public void accept(String s) {
+                sb.append(s);
+            }
+        });
+        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+        };
+        Map<String, Object> map;
+        try {
+            map = om.readValue(sb.toString(), typeRef);
+        } catch (IOException e) {
+            return "";
+        }
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        @SuppressWarnings("unchecked") List<Map<String, Object>> images = (List<Map<String, Object>>) map.get("images");
+        @SuppressWarnings("Convert2Diamond") Map<String, Object> firstImage = Iterables.getFirst(images, new HashMap<String, Object>());
+        @SuppressWarnings({"unchecked", "ConstantConditions"}) Map<String, Object> thumbnails = (Map<String, Object>) firstImage.get("thumbnails");
+        if (thumbnails == null) {
+            return "";
+        }
+        return (String) thumbnails.get("small");
     }
 
     private List<Map<String, Object>> withTags(List<Map<String, Object>> map) {
