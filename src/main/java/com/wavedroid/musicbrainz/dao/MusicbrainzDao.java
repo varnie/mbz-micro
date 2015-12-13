@@ -81,7 +81,7 @@ public class MusicbrainzDao {
             "                                                    FROM release_group_secondary_type_join j\n" +
             "                                                    WHERE j.release_group = r.id)\n" +
             "            )\n" +
-            "         AS tbl) AS tbl2\n" +
+            "         AS tbl ORDER BY release_group_id, year DESC) AS tbl2\n" +
             "ORDER BY rank DESC, year, month\n";
 
     private static final String RELEASE_BY_ID = "SELECT\n" +
@@ -228,7 +228,7 @@ public class MusicbrainzDao {
             "                                                    FROM release_group_secondary_type_join j\n" +
             "                                                    WHERE j.release_group = r.id)\n" +
             "            )\n" +
-            "         AS tbl) AS tbl2\n" +
+            "         AS tbl ORDER BY release_group_id, year DESC) AS tbl2\n" +
             "ORDER BY rank DESC, year, month\n";
 
     private static final String RELEASE_BY_ARTIST = "SELECT\n" +
@@ -276,7 +276,7 @@ public class MusicbrainzDao {
             "                                   FROM release_group_secondary_type_join j\n" +
             "                                   WHERE j.release_group = r.id)\n" +
             "            )\n" +
-            "         AS tbl) AS tbl2\n" +
+            "         AS tbl ORDER BY release_group_id, year DESC) AS tbl2\n" +
             "ORDER BY year, month ";
 
     private static final String TRACKLIST_BY_RELEASE_ID = "SELECT\n" +
