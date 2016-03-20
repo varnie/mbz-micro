@@ -19,10 +19,10 @@ CREATE INDEX release_group_ts_name_idx ON release_group USING GIN (ts_name);
 
 -- create triggers
 CREATE TRIGGER artist_ts_update BEFORE INSERT OR UPDATE ON artist
-FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('ts_name', 'mb_simple', 'name');
+FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('ts_name', 'musicbrainz.mb_simple', 'name');
 
 CREATE TRIGGER artist_alias_ts_update BEFORE INSERT OR UPDATE ON artist_alias
-FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('ts_name', 'mb_simple', 'name');
+FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('ts_name', 'musicbrainz.mb_simple', 'name');
 
 CREATE TRIGGER release_group_ts_update BEFORE INSERT OR UPDATE ON release_group
-FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('ts_name', 'mb_simple', 'name');
+FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger('ts_name', 'musicbrainz.mb_simple', 'name');
