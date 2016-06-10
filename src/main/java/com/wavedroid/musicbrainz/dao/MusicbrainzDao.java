@@ -1,6 +1,5 @@
 package com.wavedroid.musicbrainz.dao;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -15,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Dmitriy Khvatov (<i>dimax4@gmail.com</i>)
@@ -307,31 +307,23 @@ public class MusicbrainzDao {
             "ORDER BY disc_number, t.position \n";
 
     private static final String TRACKLIST_BY_RELEASE_MBID = "SELECT\n" +
-            "  t.id             AS track_id,\n" +
-            "  t.name           AS title,\n" +
-            "  t.length         AS length,\n" +
-            "  t.position       AS position,\n" +
-            "  tbl2.disc_number AS disc_number\n" +
-            "FROM (\n" +
-            "       SELECT DISTINCT ON (release_group_id)\n" +
-            "         sum(track_count)\n" +
-            "         OVER (PARTITION BY release_id) total_tracks,\n" +
-            "         *\n" +
-            "       FROM (\n" +
-            "              SELECT\n" +
-            "                m.track_count AS track_count,\n" +
-            "                m.id          AS medium_id,\n" +
-            "                m.position    AS disc_number,\n" +
-            "                r.id          AS release_group_id,\n" +
-            "                rel.id        AS release_id\n" +
-            "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
-            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
-            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
-            "                INNER JOIN medium m ON m.release = rel.id\n" +
-            "              WHERE r.gid = CAST(? AS UUID)) AS tbl) AS tbl2\n" +
-            "  INNER JOIN track t ON t.medium = medium_id\n" +
-            "ORDER BY disc_number, t.position \n";
+      "  t.id                     AS track_id,\n" +
+      "  t.name                   AS title,\n" +
+      "  t.length                 AS length,\n" +
+      "  t.position               AS position,\n" +
+      "  m.position               AS disc_number,\n" +
+      "  m.track_count            AS track_count,\n" +
+      "  tbl.release_id           AS release_id,\n" +
+      "  SUM(m.track_count)\n" +
+      "  OVER (PARTITION BY m.id) AS total_tracks\n" +
+      "FROM (SELECT MIN(rel.id) AS release_id\n" +
+      "      FROM release_group r\n" +
+      "        INNER JOIN release rel ON rel.release_group = r.id\n" +
+      "      WHERE r.gid = CAST(? AS UUID)\n" +
+      "     ) AS tbl\n" +
+      "  INNER JOIN medium m ON m.release = tbl.release_id\n" +
+      "  INNER JOIN track t ON t.medium = m.id\n" +
+      "ORDER BY disc_number, t.position;\n";
 
     private static final String TAGS_BY_RELEASE_GROUPS = "" +
             "SELECT\n" +
@@ -364,7 +356,7 @@ public class MusicbrainzDao {
     }
 
     public static List<Map<String, Object>> getReleasesByArtists(String artist, int page) {
-        return getEntitiesFromResultSet(getResultSet(RELEASES_BY_ARTISTS, page, artist, artist).orNull());
+        return getEntitiesFromResultSet(getResultSet(RELEASES_BY_ARTISTS, page, artist, artist).orElse(null));
     }
 
     public static Map<String, Object> getReleaseById(long id) {
@@ -400,23 +392,23 @@ public class MusicbrainzDao {
     }
 
     public static List<Map<String, Object>> getReleasesByName(String name, int page) {
-        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_NAME, page, name, name).orNull());
+        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_NAME, page, name, name).orElse(null));
     }
 
     public static List<Map<String, Object>> getReleasesByArtist(long artistId, int page) {
-        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_ARTIST, page, artistId).orNull());
+        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_ARTIST, page, artistId).orElse(null));
     }
 
     public static List<Map<String, Object>> getTracklist(long releaseId, int page) {
-        return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_ID, page, releaseId).orNull());
+        return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_ID, page, releaseId).orElse(null));
     }
 
     public static List<Map<String, Object>> getTracklist(String mbid, int page) {
-        return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_MBID, page, mbid).orNull());
+        return getEntitiesFromResultSet(getResultSet(TRACKLIST_BY_RELEASE_MBID, page, mbid).orElse(null));
     }
 
     public static List<Map<String, Object>> getTags(List<Long> releaseGroupIds, int limit) {
-        return getEntitiesFromResultSet(getResultSet(TAGS_BY_RELEASE_GROUPS, 0, releaseGroupIds, limit).orNull());
+        return getEntitiesFromResultSet(getResultSet(TAGS_BY_RELEASE_GROUPS, 0, releaseGroupIds, limit).orElse(null));
     }
 
     private static Optional<Connection> getConnection() {
@@ -424,7 +416,7 @@ public class MusicbrainzDao {
             return Optional.of(INSTANCE.dataSource.getConnection());
         } catch (SQLException e) {
             LOGGER.error("Failed to connect to musicbrainz database.");
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
@@ -455,7 +447,7 @@ public class MusicbrainzDao {
                 return Optional.of(ps.executeQuery());
             } catch (SQLException e) {
                 LOGGER.error("Error executing query", e);
-                return Optional.absent();
+                return Optional.empty();
             } finally {
                 try {
                     conn.close();
@@ -463,7 +455,7 @@ public class MusicbrainzDao {
                 }
             }
         } else {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
