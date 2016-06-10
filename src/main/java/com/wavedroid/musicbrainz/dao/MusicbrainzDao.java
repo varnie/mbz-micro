@@ -314,6 +314,7 @@ public class MusicbrainzDao {
       "  m.position               AS disc_number,\n" +
       "  m.track_count            AS track_count,\n" +
       "  tbl.release_id           AS release_id,\n" +
+      "  tbl.release_id           AS release_group_id,\n" +
       "  SUM(m.track_count)\n" +
       "  OVER (PARTITION BY m.id) AS total_tracks\n" +
       "FROM (SELECT MIN(rel.id) AS release_id\n" +
