@@ -324,7 +324,7 @@ public class MusicbrainzDao {
       "     ) AS tbl\n" +
       "  INNER JOIN medium m ON m.release = tbl.release_id\n" +
       "  INNER JOIN track t ON t.medium = m.id\n" +
-      "ORDER BY disc_number, t.position;\n";
+      "ORDER BY disc_number, t.position\n";
 
     private static final String TAGS_BY_RELEASE_GROUPS = "" +
             "SELECT\n" +
