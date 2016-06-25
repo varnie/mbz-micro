@@ -27,6 +27,10 @@ public class MusicbrainzDao {
 
     private final PGSimpleDataSource dataSource;
 
+    private static final String ENVVAR_DB_URL = "MBZ_DB_URL";
+    private static final String ENVVAR_DB_USER = "MBZ_DB_USER";
+    private static final String ENVVAR_DB_PASSWORD = "MBZ_DB_PASSWORD";
+
     private static final MusicbrainzDao INSTANCE = new MusicbrainzDao();
 
     private static final String RELEASES_BY_ARTISTS = "SELECT\n" +
@@ -346,10 +350,12 @@ public class MusicbrainzDao {
     private MusicbrainzDao() {
         try {
             dataSource = new PGSimpleDataSource();
-            dataSource.setDatabaseName("musicbrainz_db");
-            dataSource.setUrl("jdbc:postgresql://localhost:5433/musicbrainz_db");
-            dataSource.setUser("musicbrainz");
-            dataSource.setPassword("musicbrainz");
+
+            Map<String, String> env = System.getenv();
+
+            dataSource.setUrl(env.getOrDefault(ENVVAR_DB_URL, "jdbc:postgresql://localhost:5433/musicbrainz_db"));
+            dataSource.setUser(env.getOrDefault(ENVVAR_DB_USER, "musicbrainz"));
+            dataSource.setPassword(env.getOrDefault(ENVVAR_DB_PASSWORD, "musicbrainz"));
             dataSource.getConnection();
         } catch (SQLException e) {
             throw new RuntimeException("FATAL: Unable to connect to musicbrainz database.", e);
