@@ -74,7 +74,7 @@ public class MusicbrainzDao {
             "                 FROM artist\n" +
             "                 WHERE ts_name @@ plainto_tsquery('mb_simple', ?)\n" +
             "                ) AS a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
@@ -121,7 +121,7 @@ public class MusicbrainzDao {
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month\n" +
             "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
@@ -165,7 +165,7 @@ public class MusicbrainzDao {
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month\n" +
             "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
@@ -221,7 +221,7 @@ public class MusicbrainzDao {
             "                 WHERE ts_name @@ plainto_tsquery('mb_simple', ?)\n" +
             "                 ORDER BY rank DESC\n" +
             "                ) AS r\n" +
-            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist_credit\n" +
+            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist\n" +
             "                INNER JOIN artist a ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
@@ -268,7 +268,7 @@ public class MusicbrainzDao {
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month\n" +
             "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
@@ -302,7 +302,7 @@ public class MusicbrainzDao {
             "                r.id          AS release_group_id,\n" +
             "                rel.id        AS release_id\n" +
             "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist_credit\n" +
+            "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN medium m ON m.release = rel.id\n" +
