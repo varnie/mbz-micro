@@ -144,7 +144,7 @@ public class MusicbrainzDao {
             "  release_mbid,\n" +
             "  release_group_mbid\n" +
             "FROM (\n" +
-            "            SELECT * from (\n" +
+            "            SELECT * FROM (\n" +
             "              SELECT\n" +
             "                r.type,\n" +
             "                re.country,\n" +
@@ -161,18 +161,18 @@ public class MusicbrainzDao {
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
             "                m.first_release_date_month AS rg_month,\n" +
-            "                row_number() over (partition by r.gid order by \n" +
-            "                                       to_date(re.date_year || '-' || \n" +
+            "                row_number() OVER (PARTITION BY r.gid order by\n" +
+            "                                       to_date(re.date_year || '-' ||\n" +
             "                                               COALESCE(re.date_month, 12) || '-' ||\n" +
-            "                                               COALESCE(re.date_day, \n" +
-            "                                                         date_part('day', \n" +
+            "                                               COALESCE(re.date_day,\n" +
+            "                                                         date_part('day',\n" +
             "                                                                   (re.date_year || '-' ||\n" +
             "                                                                    COALESCE(re.date_month, 12) || '-01')::date \n" +
             "                                                                    + '1 month'::interval\n" +
             "                                                                    - '1 day'::interval)\n" +
             "                                                                   )\n" +
-            "                                       , 'YYYY-MM-DD') \n" +
-            "                 ) as rownum\n" +
+            "                                       , 'YYYY-MM-DD')\n" +
+            "                 ) AS rownum\n" +
             "              FROM artist a\n" +
             "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
@@ -181,7 +181,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "              WHERE r.gid = CAST(? AS UUID)\n" +
-            "              ) as tbl where tbl.rownum = 1\n" +
+            "              ) AS tbl WHERE tbl.rownum = 1\n" +
             "         ) AS tbl2\n" +
             "ORDER BY artist, rg_year, rg_month";
 
