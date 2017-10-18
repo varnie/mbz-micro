@@ -132,51 +132,6 @@ public class MusicbrainzDao {
             "         AS tbl) AS tbl2\n" +
             "ORDER BY artist, rg_year, rg_month\n";
 
-    // delete, because it is redundant
-    private static final String RELEASE_BY_MBID_OLD = "SELECT\n" +
-            "  rg_year  AS year,\n" +
-            "  rg_month AS month,\n" +
-            "  artist,\n" +
-            "  release_name,\n" +
-            "  total_tracks,\n" +
-            "  artist_id,\n" +
-            "  release_group_id,\n" +
-            "  release_mbid,\n" +
-            "  release_group_mbid\n" +
-            "FROM (\n" +
-            "       SELECT DISTINCT ON (release_group_id)\n" +
-            "         sum(track_count)\n" +
-            "         OVER (PARTITION BY release_id) total_tracks,\n" +
-            "         *\n" +
-            "       FROM (\n" +
-            "              SELECT\n" +
-            "                r.type,\n" +
-            "                re.country,\n" +
-            "                medium.track_count         AS track_count,\n" +
-            "                medium.id                  AS medium_id,\n" +
-            "                r.id                       AS release_group_id,\n" +
-            "                rel.id                     AS release_id,\n" +
-            "                r.gid                      AS release_group_mbid,\n" +
-            "                rel.gid                    AS release_mbid,\n" +
-            "                a.id                       AS artist_id,\n" +
-            "                a.name                     AS artist,\n" +
-            "                r.name                     AS release_name,\n" +
-            "                re.date_year               AS year,\n" +
-            "                re.date_month              AS month,\n" +
-            "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month\n" +
-            "              FROM artist a\n" +
-            "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
-            "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
-            "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
-            "                INNER JOIN release rel ON rel.release_group = r.id\n" +
-            "                INNER JOIN release_event re ON re.release = rel.id\n" +
-            "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "              WHERE r.gid = CAST(? AS UUID)\n" +
-            "            )\n" +
-            "         AS tbl) AS tbl2\n" +
-            "ORDER BY artist, rg_year, rg_month\n";
-
     private static final String RELEASE_BY_MBID = "SELECT\n" +
             "  rg_year  AS year,\n" +
             "  rg_month AS month,\n" +
@@ -189,8 +144,7 @@ public class MusicbrainzDao {
             "  release_mbid,\n" +
             "  release_group_mbid\n" +
             "FROM (\n" +
-            "       \n" +
-            "            select * from (\n" +
+            "            SELECT * from (\n" +
             "              SELECT\n" +
             "                r.type,\n" +
             "                re.country,\n" +
@@ -209,8 +163,8 @@ public class MusicbrainzDao {
             "                m.first_release_date_month AS rg_month,\n" +
             "                row_number() over (partition by r.gid order by \n" +
             "                                       to_date(re.date_year || '-' || \n" +
-            "                                               COALESCE(re.date_month, 12) || '-' \n" +
-            "                                             || COALESCE(re.date_day, \n" +
+            "                                               COALESCE(re.date_month, 12) || '-' ||\n" +
+            "                                               COALESCE(re.date_day, \n" +
             "                                                         date_part('day', \n" +
             "                                                                   (re.date_year || '-' ||\n" +
             "                                                                    COALESCE(re.date_month, 12) || '-01')::date \n" +
@@ -227,10 +181,9 @@ public class MusicbrainzDao {
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "              WHERE r.gid = CAST(? AS UUID)\n" +
-            "              ) as z where z.rownum=1\n" +
-            "            \n" +
+            "              ) as tbl where tbl.rownum = 1\n" +
             "         ) AS tbl2\n" +
-            "ORDER BY artist, rg_year, rg_month\n";
+            "ORDER BY artist, rg_year, rg_month";
 
     private static final String RELEASE_BY_NAME = "SELECT\n" +
             "  rg_year  AS year,\n" +
