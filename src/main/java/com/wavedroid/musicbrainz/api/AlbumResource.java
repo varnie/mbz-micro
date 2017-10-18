@@ -96,9 +96,10 @@ public class AlbumResource {
     public String releaseById(@PathParam("mbid") String mbid) {
         Map<String, Object> releaseMap = MusicbrainzDao.getReleaseByMbid(mbid);
         Long releaseGroupId = getReleaseGroupId(releaseMap);
+        Long releaseId = getReleaseId(releaseMap);
         releaseMap.put("image", getCover(mbid));
         releaseMap.put("genre", MusicbrainzDao.getTags(Lists.newArrayList(releaseGroupId), 1));
-        List<Map<String, Object>> tracklist = MusicbrainzDao.getTracklist(mbid, 0);
+        List<Map<String, Object>> tracklist = MusicbrainzDao.getTracklist(releaseId, 0);
         Map<String, Object> map = Maps.newHashMap();
         map.put("release", releaseMap);
         map.put("tracklist", tracklist);
@@ -126,6 +127,10 @@ public class AlbumResource {
 
     private Long getReleaseGroupId(Map<String, Object> input) {
         return Long.parseLong(String.valueOf(input.get("release_group_id")));
+    }
+
+    private Long getReleaseId(Map<String, Object> input) {
+        return Long.parseLong(String.valueOf(input.get("release_id")));
     }
 
     private static final String COVER_ART_URL = "http://coverartarchive.org/release-group/%s";
