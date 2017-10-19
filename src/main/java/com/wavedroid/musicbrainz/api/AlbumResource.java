@@ -50,8 +50,8 @@ public class AlbumResource {
     @GET
     @Timed
     @Path("/artistName/{artist}")
-    public String releasesByArtists(@PathParam("artist") String artistName, @QueryParam("page") Optional<Integer> page) {
-        List<Map<String, Object>> map = withTags(MusicbrainzDao.getReleasesByArtists(decodeUrlParameter(artistName, "artist"), page.or(0)));
+    public String releasesByArtists(@PathParam("artist") String artistName, @QueryParam("all") Optional<Boolean> all, @QueryParam("page") Optional<Integer> page) {
+        List<Map<String, Object>> map = withTags(MusicbrainzDao.getReleasesByArtists(decodeUrlParameter(artistName, "artist"), all.or(false), page.or(0)));
         try {
             return om.writeValueAsString(map);
         } catch (JsonProcessingException e) {
@@ -63,8 +63,8 @@ public class AlbumResource {
     @GET
     @Timed
     @Path("/artistId/{artistId}")
-    public String releasesByArtists(@PathParam("artistId") long artistId, @QueryParam("page") Optional<Integer> page) {
-        List<Map<String, Object>> map = withTags(MusicbrainzDao.getReleasesByArtist(artistId, page.or(0)));
+    public String releasesByArtists(@PathParam("artistId") long artistId, @QueryParam("all") Optional<Boolean> all, @QueryParam("page") Optional<Integer> page) {
+        List<Map<String, Object>> map = withTags(MusicbrainzDao.getReleasesByArtist(artistId, all.or(false), page.or(0)));
         try {
             return om.writeValueAsString(map);
         } catch (JsonProcessingException e) {
@@ -114,8 +114,8 @@ public class AlbumResource {
     @GET
     @Timed
     @Path("/name/{name}")
-    public String releaseByName(@PathParam("name") String name) {
-        List<Map<String, Object>> map = withTags(MusicbrainzDao.getReleasesByName(decodeUrlParameter(name, "name"), 0));
+    public String releaseByName(@PathParam("name") String name, @QueryParam("all") Optional<Boolean> all) {
+        List<Map<String, Object>> map = withTags(MusicbrainzDao.getReleasesByName(decodeUrlParameter(name, "name"), all.or(false), 0));
         try {
             return om.writeValueAsString(map);
         } catch (JsonProcessingException e) {

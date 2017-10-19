@@ -80,10 +80,11 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "                                     AND r.type = 1\n" +
-            "                                     AND NOT exists(SELECT 1\n" +
+            "                                     AND ((r.type = 1\n" +
+            "                                          AND NOT exists(SELECT 1\n" +
             "                                                    FROM release_group_secondary_type_join j\n" +
-            "                                                    WHERE j.release_group = r.id)\n" +
+            "                                                    WHERE j.release_group = r.id))\n" +
+            "                                           OR ?)\n" +
             "            )\n" +
             "         AS tbl ORDER BY release_group_id, year ASC) AS tbl2\n" +
             "ORDER BY rank DESC, year, month\n";
@@ -236,10 +237,11 @@ public class MusicbrainzDao {
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
-            "                                     AND r.type = 1\n" +
-            "                                     AND NOT exists(SELECT 1\n" +
+            "                                     AND ((r.type = 1\n" +
+            "                                           AND NOT exists(SELECT 1\n" +
             "                                                    FROM release_group_secondary_type_join j\n" +
-            "                                                    WHERE j.release_group = r.id)\n" +
+            "                                                    WHERE j.release_group = r.id))\n" +
+            "                                           OR ?)\n" +
             "            )\n" +
             "         AS tbl ORDER BY release_group_id, year ASC) AS tbl2\n" +
             "ORDER BY rank DESC, year, month\n";
@@ -284,10 +286,12 @@ public class MusicbrainzDao {
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "              WHERE a.id = ?\n" +
-            "                    AND r.type = 1\n" +
-            "                    AND NOT exists(SELECT 1\n" +
-            "                                   FROM release_group_secondary_type_join j\n" +
-            "                                   WHERE j.release_group = r.id)\n" +
+            "                                     AND ((r.type = 1\n" +
+            "                                           AND NOT exists(SELECT 1\n" +
+            "                                                    FROM release_group_secondary_type_join j\n" +
+            "                                                    WHERE j.release_group = r.id))\n" +
+            "                                           OR ?)\n" +
+
             "            )\n" +
             "         AS tbl ORDER BY release_group_id, year ASC) AS tbl2\n" +
             "ORDER BY year, month ";
@@ -371,8 +375,8 @@ public class MusicbrainzDao {
         }
     }
 
-    public static List<Map<String, Object>> getReleasesByArtists(String artist, int page) {
-        return getEntitiesFromResultSet(getResultSet(RELEASES_BY_ARTISTS, page, artist, artist).orElse(null));
+    public static List<Map<String, Object>> getReleasesByArtists(String artist, boolean all, int page) {
+        return getEntitiesFromResultSet(getResultSet(RELEASES_BY_ARTISTS, page, artist, artist, all).orElse(null));
     }
 
     public static Map<String, Object> getReleaseById(long id) {
@@ -407,12 +411,12 @@ public class MusicbrainzDao {
         return Maps.newHashMap();
     }
 
-    public static List<Map<String, Object>> getReleasesByName(String name, int page) {
-        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_NAME, page, name, name).orElse(null));
+    public static List<Map<String, Object>> getReleasesByName(String name, boolean all, int page) {
+        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_NAME, page, name, name, all).orElse(null));
     }
 
-    public static List<Map<String, Object>> getReleasesByArtist(long artistId, int page) {
-        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_ARTIST, page, artistId).orElse(null));
+    public static List<Map<String, Object>> getReleasesByArtist(long artistId, boolean all, int page) {
+        return getEntitiesFromResultSet(getResultSet(RELEASE_BY_ARTIST, page, artistId, all).orElse(null));
     }
 
     public static List<Map<String, Object>> getTracklist(long releaseId, int page) {
@@ -456,6 +460,9 @@ public class MusicbrainzDao {
                     }
                     if (param instanceof List) {
                         ps.setArray(index, conn.createArrayOf("integer", ((List) param).toArray()));
+                    }
+                    if (param instanceof Boolean) {
+                        ps.setBoolean(index, (Boolean) param);
                     }
                 }
                 ps.setInt(++index, PAGE_SIZE);
