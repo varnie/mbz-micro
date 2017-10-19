@@ -136,6 +136,7 @@ public class MusicbrainzDao {
             "  rg_year  AS year,\n" +
             "  rg_month AS month,\n" +
             "  artist,\n" +
+            "  release_id,\n" +
             "  release_name,\n" +
             "  total_tracks,\n" +
             "  artist_id,\n" +
@@ -143,15 +144,11 @@ public class MusicbrainzDao {
             "  release_mbid,\n" +
             "  release_group_mbid\n" +
             "FROM (\n" +
-            "       SELECT DISTINCT ON (release_group_id)\n" +
-            "         sum(track_count)\n" +
-            "         OVER (PARTITION BY release_id) total_tracks,\n" +
-            "         *\n" +
-            "       FROM (\n" +
+            "            SELECT * FROM (\n" +
             "              SELECT\n" +
             "                r.type,\n" +
             "                re.country,\n" +
-            "                medium.track_count         AS track_count,\n" +
+            "                medium.track_count         AS total_tracks,\n" +
             "                medium.id                  AS medium_id,\n" +
             "                r.id                       AS release_group_id,\n" +
             "                rel.id                     AS release_id,\n" +
@@ -163,7 +160,19 @@ public class MusicbrainzDao {
             "                re.date_year               AS year,\n" +
             "                re.date_month              AS month,\n" +
             "                m.first_release_date_year  AS rg_year,\n" +
-            "                m.first_release_date_month AS rg_month\n" +
+            "                m.first_release_date_month AS rg_month,\n" +
+            "                row_number() OVER (PARTITION BY r.gid order by\n" +
+            "                                       to_date(re.date_year || '-' ||\n" +
+            "                                               COALESCE(re.date_month, 12) || '-' ||\n" +
+            "                                               COALESCE(re.date_day,\n" +
+            "                                                         date_part('day',\n" +
+            "                                                                   (re.date_year || '-' ||\n" +
+            "                                                                    COALESCE(re.date_month, 12) || '-01')::date \n" +
+            "                                                                    + '1 month'::interval\n" +
+            "                                                                    - '1 day'::interval)\n" +
+            "                                                                   )\n" +
+            "                                       , 'YYYY-MM-DD')\n" +
+            "                 ) AS rownum\n" +
             "              FROM artist a\n" +
             "                INNER JOIN artist_credit_name c ON a.id = c.artist\n" +
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
@@ -172,9 +181,9 @@ public class MusicbrainzDao {
             "                INNER JOIN release_event re ON re.release = rel.id\n" +
             "                INNER JOIN medium ON medium.release = rel.id\n" +
             "              WHERE r.gid = CAST(? AS UUID)\n" +
-            "            )\n" +
-            "         AS tbl) AS tbl2\n" +
-            "ORDER BY artist, rg_year, rg_month\n";
+            "              ) AS tbl WHERE tbl.rownum = 1\n" +
+            "         ) AS tbl2\n" +
+            "ORDER BY artist, rg_year, rg_month";
 
     private static final String RELEASE_BY_NAME = "SELECT\n" +
             "  rg_year  AS year,\n" +
@@ -306,7 +315,7 @@ public class MusicbrainzDao {
             "                INNER JOIN release_group r ON c.artist_credit = r.artist_credit\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
             "                INNER JOIN medium m ON m.release = rel.id\n" +
-            "              WHERE r.id = ?) AS tbl) AS tbl2\n" +
+            "              WHERE rel.id = ?) AS tbl) AS tbl2\n" +
             "  INNER JOIN track t ON t.medium = medium_id\n" +
             "ORDER BY disc_number, t.position \n";
 
