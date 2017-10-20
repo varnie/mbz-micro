@@ -42,7 +42,15 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid\n" +
+            "  release_group_mbid,\n" +
+            "  CASE WHEN " +
+            "       (tbl2.type = 1\n" +
+            "           AND NOT exists(SELECT 1\n" +
+            "                          FROM release_group_secondary_type_join j\n" +
+            "                          WHERE j.release_group = tbl2.release_group_id))\n" +
+            "  THEN 1\n" +
+            "  ELSE 0\n" +
+            "  END AS is_studio_album\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -195,7 +203,15 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid\n" +
+            "  release_group_mbid,\n" +
+            "  CASE WHEN " +
+            "       (tbl2.type = 1\n" +
+            "           AND NOT exists(SELECT 1\n" +
+            "                          FROM release_group_secondary_type_join j\n" +
+            "                          WHERE j.release_group = tbl2.release_group_id))\n" +
+            "  THEN 1\n" +
+            "  ELSE 0\n" +
+            "  END AS is_studio_album\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
@@ -255,7 +271,15 @@ public class MusicbrainzDao {
             "  artist_id,\n" +
             "  release_group_id,\n" +
             "  release_mbid,\n" +
-            "  release_group_mbid\n" +
+            "  release_group_mbid,\n" +
+            "  CASE WHEN " +
+            "       (tbl2.type = 1\n" +
+            "           AND NOT exists(SELECT 1\n" +
+            "                          FROM release_group_secondary_type_join j\n" +
+            "                          WHERE j.release_group = tbl2.release_group_id))\n" +
+            "  THEN 1\n" +
+            "  ELSE 0\n" +
+            "  END AS is_studio_album\n" +
             "FROM (\n" +
             "       SELECT DISTINCT ON (release_group_id)\n" +
             "         sum(track_count)\n" +
