@@ -247,7 +247,7 @@ public class MusicbrainzDao {
             "                 WHERE ts_name @@ plainto_tsquery('mb_simple', ?)\n" +
             "                 ORDER BY rank DESC\n" +
             "                ) AS r\n" +
-            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist\n" +
+            "                INNER JOIN artist_credit_name c ON r.artist_credit = c.artist_credit\n" +
             "                INNER JOIN artist a ON a.id = c.artist_credit\n" +
             "                INNER JOIN release_group_meta m ON m.id = r.id\n" +
             "                INNER JOIN release rel ON rel.release_group = r.id\n" +
