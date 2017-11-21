@@ -46,6 +46,58 @@ public class AlbumResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlbumResource.class);
 
     private static final ObjectMapper om = new ObjectMapper();
+    private static final String COVER_ART_URL = "http://coverartarchive.org/release-group/%s";
+
+    private static String getCover(String mbid) {
+        String url = String.format(COVER_ART_URL, mbid);
+
+        HttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+        HttpGet httpGet = new HttpGet(url);
+        HttpResponse httpResponse;
+        try {
+            httpResponse = client.execute(httpGet);
+        } catch (IOException e) {
+            return "";
+        }
+        HttpEntity entity = httpResponse.getEntity();
+        InputStream is;
+        try {
+            is = entity.getContent();
+        } catch (IOException e) {
+            return "";
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        br.lines().forEach(sb::append);
+        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+        };
+        Map<String, Object> map;
+        try {
+            map = om.readValue(sb.toString(), typeRef);
+        } catch (IOException e) {
+            return "";
+        }
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        @SuppressWarnings("unchecked") List<Map<String, Object>> images = (List<Map<String, Object>>) map.get("images");
+        @SuppressWarnings("Convert2Diamond") Map<String, Object> firstImage = Iterables.getFirst(images, new HashMap<String, Object>());
+        @SuppressWarnings({"unchecked", "ConstantConditions"}) Map<String, Object> thumbnails = (Map<String, Object>) firstImage.get("thumbnails");
+        if (thumbnails == null) {
+            return "";
+        }
+        return (String) thumbnails.get("small");
+    }
+
+    private static String decodeUrlParameter(String paramValue, String paramName) {
+        try {
+            return URLDecoder.decode(paramValue, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.warn("error decoding url parameter " + paramName + "=" + paramValue);
+            return paramValue;
+        }
+    }
 
     @GET
     @Timed
@@ -133,55 +185,6 @@ public class AlbumResource {
         return Long.parseLong(String.valueOf(input.get("release_id")));
     }
 
-    private static final String COVER_ART_URL = "http://coverartarchive.org/release-group/%s";
-
-    private static String getCover(String mbid) {
-        String url = String.format(COVER_ART_URL, mbid);
-
-        HttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-        HttpGet httpGet = new HttpGet(url);
-        HttpResponse httpResponse;
-        try {
-            httpResponse = client.execute(httpGet);
-        } catch (IOException e) {
-            return "";
-        }
-        HttpEntity entity = httpResponse.getEntity();
-        InputStream is;
-        try {
-            is = entity.getContent();
-        } catch (IOException e) {
-            return "";
-        }
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-        br.lines().forEach(new Consumer<String>() {
-            @Override
-            public void accept(String s) {
-                sb.append(s);
-            }
-        });
-        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
-        };
-        Map<String, Object> map;
-        try {
-            map = om.readValue(sb.toString(), typeRef);
-        } catch (IOException e) {
-            return "";
-        }
-        if (map == null || map.isEmpty()) {
-            return "";
-        }
-        @SuppressWarnings("unchecked") List<Map<String, Object>> images = (List<Map<String, Object>>) map.get("images");
-        @SuppressWarnings("Convert2Diamond") Map<String, Object> firstImage = Iterables.getFirst(images, new HashMap<String, Object>());
-        @SuppressWarnings({"unchecked", "ConstantConditions"}) Map<String, Object> thumbnails = (Map<String, Object>) firstImage.get("thumbnails");
-        if (thumbnails == null) {
-            return "";
-        }
-        return (String) thumbnails.get("small");
-    }
-
     private List<Map<String, Object>> withTags(List<Map<String, Object>> map) {
         List<Long> releaseGroupIds = Lists.transform(map, this::getReleaseGroupId);
         List<Map<String, Object>> tagsList = MusicbrainzDao.getTags(releaseGroupIds, 1);
@@ -198,15 +201,6 @@ public class AlbumResource {
             }
             return joined;
         }));
-    }
-
-    private static String decodeUrlParameter(String paramValue, String paramName) {
-        try {
-            return URLDecoder.decode(paramValue, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.warn("error decoding url parameter " + paramName + "=" + paramValue);
-            return paramValue;
-        }
     }
 
 }
